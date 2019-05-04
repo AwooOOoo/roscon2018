@@ -31,7 +31,10 @@ def generate_launch_description():
     launch_file_dir = os.path.join(get_package_share_directory('confbot_bringup'), 'launch')
     return LaunchDescription([
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', world, '-s', 'libgazebo_ros_factory.so'],
+            cmd=[
+                'gazebo', '--verbose', world,
+                '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so'
+            ],
             output='screen'),
 
         ExecuteProcess(
