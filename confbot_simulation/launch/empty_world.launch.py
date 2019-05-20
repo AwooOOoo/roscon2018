@@ -25,7 +25,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time', default='True')
+    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
     world = os.path.join(
         get_package_share_directory('confbot_simulation'), 'world', 'basic_world.world')
     launch_file_dir = os.path.join(get_package_share_directory('confbot_bringup'), 'launch')
@@ -38,7 +38,8 @@ def generate_launch_description():
             output='screen'),
 
         ExecuteProcess(
-            cmd=['ros2', 'param', 'set', '/gazebo', 'use_sim_time', use_sim_time],
+            cmd=['ros2', 'param', 'set', '/gazebo', 'use_sim_time',
+                 ('True' if use_sim_time else 'False')],
             output='screen'),
 
         IncludeLaunchDescription(
