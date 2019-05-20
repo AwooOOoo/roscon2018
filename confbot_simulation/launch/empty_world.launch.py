@@ -18,6 +18,7 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
 from launch.actions import ExecuteProcess
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -25,11 +26,16 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
+    use_sim_time = False
     world = os.path.join(
         get_package_share_directory('confbot_simulation'), 'world', 'basic_world.world')
     launch_file_dir = os.path.join(get_package_share_directory('confbot_bringup'), 'launch')
+
     return LaunchDescription([
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value=str(use_sim_time),
+            description='Use simulation (Gazebo) clock if true'),
         ExecuteProcess(
             cmd=[
                 'gazebo', '--verbose', world,
@@ -38,12 +44,14 @@ def generate_launch_description():
             output='screen'),
 
         ExecuteProcess(
-            cmd=['ros2', 'param', 'set', '/gazebo', 'use_sim_time',
-                 ('True' if use_sim_time else 'False')],
+            cmd=[
+                'ros2', 'param', 'set', '/gazebo',
+                'use_sim_time', LaunchConfiguration('use_sim_time')
+            ],
             output='screen'),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource([launch_file_dir, '/confbot_state_publisher.launch.py']),
-            launch_arguments={'use_sim_time': use_sim_time}.items(),
+            launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time')}.items(),
         ),
     ])

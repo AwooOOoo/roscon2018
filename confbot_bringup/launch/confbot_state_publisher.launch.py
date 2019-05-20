@@ -19,20 +19,20 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions.if_condition import IfCondition
+from launch.conditions.unless_condition import UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
     urdf_file_name = 'confbot.urdf'
-
     urdf = os.path.join(get_package_share_directory('confbot_description'), 'urdf', urdf_file_name)
 
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
-            default_value=('True' if use_sim_time else 'False'),
+            default_value='True',
             description='Use simulation (Gazebo) clock if true'),
 
         Node(
@@ -40,6 +40,16 @@ def generate_launch_description():
             node_executable='robot_state_publisher',
             node_name='robot_state_publisher',
             output='screen',
-            parameters=[{'use_sim_time': (True if use_sim_time else False)}],
-            arguments=[urdf]),
+            parameters=[{'use_sim_time': True}],
+            arguments=[urdf],
+            condition=IfCondition(LaunchConfiguration('use_sim_time'))),
+
+        Node(
+            package='robot_state_publisher',
+            node_executable='robot_state_publisher',
+            node_name='robot_state_publisher',
+            output='screen',
+            parameters=[{'use_sim_time': False}],
+            arguments=[urdf],
+            condition=UnlessCondition(LaunchConfiguration('use_sim_time')))
     ])
